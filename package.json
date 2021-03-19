@@ -9,6 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "discord-webhook-node": "^1.1.8",
     "puppeteer": "^8.0.0"
   }
 }
