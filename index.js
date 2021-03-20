@@ -2,6 +2,17 @@ const puppeteer = require('puppeteer');
 const { Webhook } = require('discord-webhook-node');
 const hook = new Webhook("https://discord.com/api/webhooks/822600815554330674/rEdI_ksH_BXLY4LmWnTTWMwiLRMsGJsSkefiDn6lvJ0Ie3Z-bMqrJ66usKMfXFSAyyVI");
 
+const updateDiscord = async (page, message, file) => {
+  try {
+    await page.screenshot({ path: file }, { fullPage: true });
+    console.log(message)
+    hook.send(message);
+    hook.sendFile("./" + file);
+  } catch (e) {
+    throw e
+  }
+}
+
 (async () => {
   const browser = await puppeteer.launch({ product: 'firefox' });
   const page = await browser.newPage();
@@ -28,28 +39,20 @@ const hook = new Webhook("https://discord.com/api/webhooks/822600815554330674/rE
       await page.evaluate(() =>
         document.querySelectorAll(".add-to-cart-button")[0].click()
       );
-      await page.screenshot({ path: 'added-to-cart.png' }, { fullPage: true });
-      console.log("add to cart screenshot acquired")
-      hook.send("Added rtx 3070 to cart!");
-      hook.sendFile("./added-to-cart.png");
+      await updateDiscord(page, 'Added rtx 3070 to cart!', 'added-to-cart.png');
       await page.waitForSelector('.dot')
       await page.goto('https://www.bestbuy.com/cart');
       await page.waitForSelector('.checkout-buttons__checkout');
       await page.evaluate(() =>
         document.querySelectorAll('.checkout-buttons__checkout button:not(disabled)')[0].click()
       );
-      await page.screenshot({ path: 'checkout.png' }, { fullPage: true });
-      console.log("click checkout button screenshot acquired")
-      hook.send("Proceeding with checkout!");
-      hook.sendFile("./checkout.png");
-      await page.waitForSelector('.cia-form__controls');
-      await page.screenshot({ path: 'login-page.png' }, { fullPage: true });
-      console.log("log in screenshot acquired");
-      hook.send("Arrived at login page!");
-      hook.sendFile("./login-page.png");
+      await updateDiscord(page, 'Proceeding with checkout!', 'checkout.png');
+      await page.waitForSelector('.cdi-input');
+      await updateDiscord(page, 'Arrived at login page!', 'login-page.png');
     }
   } catch (e) {
-    browser.close()
+    await updateDiscord(page, '***** ERROR IN PURCHASE. ABORTING *****', 'error.png')
+    await browser.close()
     throw e
   }
 
