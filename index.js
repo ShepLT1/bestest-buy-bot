@@ -64,6 +64,7 @@ const updateDiscord = async (page, message, file) => {
       const headingText = await page.$eval('.streamlined__heading span', el => el.innerText);
       if (headingText === "Store Pickup Information") {
         console.log("store pickup")
+        await updateDiscord(page, 'Only store pickup available!', 'store-pickup.png');
       } else {
         await page.waitForSelector('.address-form__first-name', { timeout: 20000 })
         await page.type('.address-form__first-name input', user.shipping.first, { delay: 100 })
