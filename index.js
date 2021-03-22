@@ -37,7 +37,7 @@ const updateDiscord = async (page, message, file) => {
     });
 
     try {
-      await page.goto('https://www.bestbuy.com/site/pny-geforce-gt1030-2gb-pci-e-3-0-graphics-card-black/5901353.p?skuId=5901353');
+      await page.goto('https://www.bestbuy.com/site/logitech-g815-lightsync-rgb-mechanical-gaming-keyboard-with-gl-clicky-switch-black/6360838.p?skuId=6360838#tabbed-customerreviews');
       await page.waitForSelector('.blue-assist-tab', { timeout: 20000 })
       const buttonText = await page.$eval('.add-to-cart-button', el => el.innerText);
 
@@ -103,9 +103,13 @@ const updateDiscord = async (page, message, file) => {
           await page.select('select[name="expiration-year"]', user.payment.expireYear);
           await page.type('[id="credit-card-cvv"]', user.payment.cvv, { delay: 100 });
           await updateDiscord(page, 'Placing order!', 'order-preview.png')
-          /* await page.evaluate(() =>
-            document.querySelectorAll(".button--place-order button")[0].click()
-            ); */
+          await page.evaluate(() =>
+            document.querySelectorAll('.button--place-order button')[0].scrollIntoView(false)
+          )
+          // await page.evaluate(() =>
+          //   document.querySelectorAll(".button--place-order button.btn-primary")[0].click()
+          // );
+          await page.waitForSelector('.thank-you-enhancement__emphasis', { timeout: 60000 })
           await updateDiscord(page, 'HELL YEAH WE GOT IT!', 'order.png')
           purchased = true;
           await browser.close();
