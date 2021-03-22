@@ -98,8 +98,15 @@ const updateDiscord = async (page, message, file) => {
           );
           await updateDiscord(page, 'Shipping and contact info populated. Heading to payment info!', 'shipping.png');
           await page.waitForSelector('[id="optimized-cc-card-number"]', { timeout: 20000 })
-          // fill out payment info and place order
-          await updateDiscord(page, 'Placing order!', 'order.png')
+          await page.type('[id="optimized-cc-card-number"]', user.payment.number, { delay: 100 });
+          await page.select('select[name="expiration-month"]', user.payment.expireMonth);
+          await page.select('select[name="expiration-year"]', user.payment.expireYear);
+          await page.type('[id="credit-card-cvv"]', user.payment.cvv, { delay: 100 });
+          await updateDiscord(page, 'Placing order!', 'order-preview.png')
+          /* await page.evaluate(() =>
+            document.querySelectorAll(".button--place-order button")[0].click()
+            ); */
+          await updateDiscord(page, 'HELL YEAH WE GOT IT!', 'order.png')
           purchased = true;
           await browser.close();
         }
