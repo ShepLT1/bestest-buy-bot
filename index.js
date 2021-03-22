@@ -1,9 +1,9 @@
 const puppeteer = require('puppeteer-extra');
 const pluginStealth = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(pluginStealth())
-const { Webhook } = require('discord-webhook-node');
-const hook = new Webhook("https://discord.com/api/webhooks/822600815554330674/rEdI_ksH_BXLY4LmWnTTWMwiLRMsGJsSkefiDn6lvJ0Ie3Z-bMqrJ66usKMfXFSAyyVI");
 const user = require('./config');
+const { Webhook } = require('discord-webhook-node');
+const hook = new Webhook(user.discord);
 
 // test: https://www.bestbuy.com/site/pny-geforce-gt1030-2gb-pci-e-3-0-graphics-card-black/5901353.p?skuId=5901353
 // 3070: https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442
