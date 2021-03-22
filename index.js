@@ -29,7 +29,7 @@ const updateDiscord = async (page, message, file) => {
     });
     const page = await browser.newPage();
     await page.emulate({
-      name: "Desktop 10240x1200",
+      name: "Desktop 1024x1200",
       viewport: {
         width: 1024,
         height: 1200,
@@ -37,7 +37,7 @@ const updateDiscord = async (page, message, file) => {
     });
 
     try {
-      await page.goto('https://www.bestbuy.com/site/logitech-g815-lightsync-rgb-mechanical-gaming-keyboard-with-gl-clicky-switch-black/6360838.p?skuId=6360838#tabbed-customerreviews');
+      await page.goto('https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442');
       await page.waitForSelector('.blue-assist-tab', { timeout: 20000 })
       const buttonText = await page.$eval('.add-to-cart-button', el => el.innerText);
 
@@ -47,6 +47,7 @@ const updateDiscord = async (page, message, file) => {
         await page.evaluate(() =>
           document.querySelectorAll(".add-to-cart-button")[0].click()
         );
+        // Add loop to check if add to cart button has been re-enabled. If so, click again
         await updateDiscord(page, 'Added rtx 3070 to cart!', 'added-to-cart.png');
         await page.waitForSelector('.dot', { timeout: 20000 })
         await page.goto('https://www.bestbuy.com/cart');
