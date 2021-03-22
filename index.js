@@ -47,7 +47,23 @@ const updateDiscord = async (page, message, file) => {
         await page.evaluate(() =>
           document.querySelectorAll(".add-to-cart-button")[0].click()
         );
-        // Add loop to check if add to cart button has been re-enabled. If so, click again
+        await page.waitForTimeout(1000);
+        let clickAgain = false
+        let addedToCart = await page.evaluate(() => document.querySelector('.dot') !== null);
+        while (!clickAgain && !addedToCart) {
+          const cart_btn_available = await page.evaluate(() => document.querySelector('.add-to-cart-button[disabled]') === null);
+          if (cart_btn_available) {
+            console.log("ok to click button")
+            // await page.evaluate(() => document.querySelectorAll(".add-to-cart-button")[0].click());
+            clickAgain = true;
+          } else {
+            console.log("waiting")
+            console.log("cart_btn_available", cart_btn_available)
+            await page.waitForTimeout(2000)
+            addedToCart = await page.evaluate(() => document.querySelector('.dot') !== null);
+            console.log("addedToCart", addedToCart)
+          }
+        }
         await updateDiscord(page, 'Added rtx 3070 to cart!', 'added-to-cart.png');
         await page.waitForSelector('.dot', { timeout: 20000 })
         await page.goto('https://www.bestbuy.com/cart');
