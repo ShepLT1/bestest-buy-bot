@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "discord-webhook-node": "^1.1.8",
+    "dotenv": "^8.2.0",
     "puppeteer": "^8.0.0",
     "puppeteer-extra": "^3.1.18",
     "puppeteer-extra-plugin-stealth": "^2.7.6"

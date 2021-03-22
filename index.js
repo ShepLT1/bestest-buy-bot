@@ -1,9 +1,9 @@
 const puppeteer = require('puppeteer-extra');
 const pluginStealth = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(pluginStealth())
-const user = require('./config');
+require('dotenv').config()
 const { Webhook } = require('discord-webhook-node');
-const hook = new Webhook(user.discord);
+const hook = new Webhook(process.env.DISCORD);
 
 // test: https://www.bestbuy.com/site/pny-geforce-gt1030-2gb-pci-e-3-0-graphics-card-black/5901353.p?skuId=5901353
 // 3070: https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442
@@ -72,7 +72,7 @@ const updateDiscord = async (page, message, file) => {
           document.querySelectorAll('.change-zipcode-link')[0].click()
         );
         await page.waitForSelector('.update-zip__zip-input', { timeout: 20000 })
-        await page.type('.update-zip__zip-input', user.shipping.zip, { delay: 100 })
+        await page.type('.update-zip__zip-input', process.env.ZIP, { delay: 100 })
         await page.evaluate(() =>
           document.querySelectorAll('.update-zip__input-group button')[0].click()
         );
@@ -94,31 +94,31 @@ const updateDiscord = async (page, message, file) => {
           await updateDiscord(page, 'Only store pickup available!', 'store-pickup.png');
         } else {
           await page.waitForSelector('.address-form__first-name', { timeout: 20000 })
-          await page.type('.address-form__first-name input', user.shipping.first, { delay: 100 })
-          await page.type('.address-form__last-name input', user.shipping.last, { delay: 100 })
+          await page.type('.address-form__first-name input', process.env.FIRST, { delay: 100 })
+          await page.type('.address-form__last-name input', process.env.LAST, { delay: 100 })
           await page.evaluate(() =>
             document.querySelectorAll(".autocomplete__toggle")[0].click()
           );
-          await page.type('[id="consolidatedAddresses.ui_address_2.street"]', user.shipping.street, { delay: 100 })
+          await page.type('[id="consolidatedAddresses.ui_address_2.street"]', process.env.STREET, { delay: 100 })
           await page.evaluate(() =>
             document.querySelectorAll(".address-form__showAddress2Link")[0].click()
           );
           await page.waitForSelector('[id="consolidatedAddresses.ui_address_2.street2"]', { timeout: 20000 })
-          await page.type('[id="consolidatedAddresses.ui_address_2.street2"]', user.shipping.street2, { delay: 100 })
-          await page.type('[id="consolidatedAddresses.ui_address_2.city"]', user.shipping.city, { delay: 100 })
-          await page.select('select[name="state"]', user.shipping.state)
-          await page.type('[id="consolidatedAddresses.ui_address_2.zipcode"]', user.shipping.zip, { delay: 100 })
-          await page.type('[id="user.emailAddress"]', user.shipping.email, { delay: 100 })
-          await page.type('[id="user.phone"]', user.shipping.phone, { delay: 100 })
+          await page.type('[id="consolidatedAddresses.ui_address_2.street2"]', process.env.STREET2, { delay: 100 })
+          await page.type('[id="consolidatedAddresses.ui_address_2.city"]', process.env.CITY, { delay: 100 })
+          await page.select('select[name="state"]', process.env.STATE)
+          await page.type('[id="consolidatedAddresses.ui_address_2.zipcode"]', process.env.ZIP, { delay: 100 })
+          await page.type('[id="user.emailAddress"]', process.env.EMAIL, { delay: 100 })
+          await page.type('[id="user.phone"]', process.env.PHONE, { delay: 100 })
           await page.evaluate(() =>
             document.querySelectorAll(".button--continue button")[0].click()
           );
           await updateDiscord(page, 'Shipping and contact info populated. Heading to payment info!', 'shipping.png');
           await page.waitForSelector('[id="optimized-cc-card-number"]', { timeout: 20000 })
-          await page.type('[id="optimized-cc-card-number"]', user.payment.number, { delay: 100 });
-          await page.select('select[name="expiration-month"]', user.payment.expireMonth);
-          await page.select('select[name="expiration-year"]', user.payment.expireYear);
-          await page.type('[id="credit-card-cvv"]', user.payment.cvv, { delay: 100 });
+          await page.type('[id="optimized-cc-card-number"]', process.env.NUMBER, { delay: 100 });
+          await page.select('select[name="expiration-month"]', process.env.EXPIREMONTH);
+          await page.select('select[name="expiration-year"]', process.env.EXPIREYEAR);
+          await page.type('[id="credit-card-cvv"]', process.env.CVV, { delay: 100 });
           await updateDiscord(page, 'Placing order!', 'order-preview.png')
           await page.evaluate(() =>
             document.querySelectorAll('.button--place-order button')[0].scrollIntoView(false)
