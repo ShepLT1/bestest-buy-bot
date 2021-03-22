@@ -37,7 +37,7 @@ const updateDiscord = async (page, message, file) => {
     });
 
     try {
-      await page.goto('https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442');
+      await page.goto('https://www.bestbuy.com/site/pny-geforce-gt1030-2gb-pci-e-3-0-graphics-card-black/5901353.p?skuId=5901353');
       await page.waitForSelector('.blue-assist-tab', { timeout: 20000 })
       const buttonText = await page.$eval('.add-to-cart-button', el => el.innerText);
 
@@ -51,6 +51,15 @@ const updateDiscord = async (page, message, file) => {
         await page.waitForSelector('.dot', { timeout: 20000 })
         await page.goto('https://www.bestbuy.com/cart');
         await page.waitForSelector('.checkout-buttons__checkout', { timeout: 20000 });
+        await page.evaluate(() =>
+          document.querySelectorAll('.change-zipcode-link')[0].click()
+        );
+        await page.waitForSelector('.update-zip__zip-input', { timeout: 20000 })
+        await page.type('.update-zip__zip-input', user.shipping.zip, { delay: 100 })
+        await page.evaluate(() =>
+          document.querySelectorAll('.update-zip__input-group button')[0].click()
+        );
+        await page.waitForTimeout(3000)
         await page.evaluate(() =>
           document.querySelectorAll('.checkout-buttons__checkout button:not(disabled)')[0].click()
         );
