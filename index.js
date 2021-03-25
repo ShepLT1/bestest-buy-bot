@@ -24,7 +24,7 @@ const updateDiscord = async (page, message, file) => {
   while (purchased === false) {
     const browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
-      headless: false,
+      // headless: false,
       product: 'firefox'
     });
     const page = await browser.newPage();
@@ -67,6 +67,7 @@ const updateDiscord = async (page, message, file) => {
           }
         }
         await updateDiscord(page, 'Added rtx 3070 to cart!', 'added-to-cart.png');
+        await page.waitForTimeout(5000);
         await page.waitForSelector('.dot', { timeout: 20000 })
         await page.goto('https://www.bestbuy.com/cart');
         await page.waitForSelector('.checkout-buttons__checkout', { timeout: 20000 });
@@ -133,6 +134,8 @@ const updateDiscord = async (page, message, file) => {
           purchased = true;
           await browser.close();
         }
+      } else if (buttonText === "Add to Cart" && price >= 650) {
+        await updateDiscord(page, 'Item in stock for ' + price, 'overPrice.png')
       } else {
         const time = new Date();
         console.log("Not in Stock " + time);
