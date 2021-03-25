@@ -40,8 +40,10 @@ const updateDiscord = async (page, message, file) => {
       await page.goto('https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442');
       await page.waitForSelector('.blue-assist-tab', { timeout: 20000 })
       const buttonText = await page.$eval('.add-to-cart-button', el => el.innerText);
+      let price = await page.$eval('.priceView-layout-large .priceView-customer-price span', el => el.innerText);
+      price = price.slice(1);
 
-      if (buttonText === "Add to Cart") {
+      if (buttonText === "Add to Cart" && price < 650) {
         await page.evaluate(() =>
           document.querySelectorAll('.add-to-cart-button')[0].scrollIntoView(false))
         await page.evaluate(() =>
@@ -54,7 +56,7 @@ const updateDiscord = async (page, message, file) => {
           const cart_btn_available = await page.evaluate(() => document.querySelector('.add-to-cart-button[disabled]') === null);
           if (cart_btn_available) {
             console.log("ok to click button")
-            // await page.evaluate(() => document.querySelectorAll(".add-to-cart-button")[0].click());
+            await page.evaluate(() => document.querySelectorAll(".add-to-cart-button")[0].click());
             clickAgain = true;
           } else {
             console.log("waiting")
@@ -132,7 +134,8 @@ const updateDiscord = async (page, message, file) => {
           await browser.close();
         }
       } else {
-        console.log("Not in Stock");
+        const time = new Date();
+        console.log("Not in Stock " + time);
         await page.waitForTimeout(60000)
         await browser.close();
       }
