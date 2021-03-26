@@ -11,6 +11,7 @@
   "dependencies": {
     "discord-webhook-node": "^1.1.8",
     "dotenv": "^8.2.0",
+    "pm2": "^4.5.5",
     "puppeteer": "^8.0.0",
     "puppeteer-extra": "^3.1.18",
     "puppeteer-extra-plugin-stealth": "^2.7.6"
