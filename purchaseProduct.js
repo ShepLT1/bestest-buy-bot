@@ -166,10 +166,13 @@ module.exports = {
           await page.evaluate(() =>
             document.querySelectorAll('.button--place-order button')[0].scrollIntoView(false)
           )
-          await page.evaluate(() =>
-            document.querySelectorAll(".button--place-order button.btn-primary")[0].click()
-          );
-          await page.waitForSelector('.thank-you-enhancement__emphasis', { timeout: 60000 })
+
+          // UNCOMMENT SECTION BELOW TO ENABLE AUTO-CHECKOUT
+
+          // await page.evaluate(() =>
+          //   document.querySelectorAll(".button--place-order button.btn-primary")[0].click()
+          // );
+          // await page.waitForSelector('.thank-you-enhancement__emphasis', { timeout: 60000 })
 
           // update discord of successful purchase, write file to prevent duplicate purchase, and exit
 
