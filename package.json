@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start && pm2 monit",
+    "stop": "pm2 delete index"
   },
   "author": "",
   "license": "MIT",

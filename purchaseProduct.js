@@ -6,30 +6,27 @@ const fs = require('fs');
 const { Webhook } = require('discord-webhook-node');
 const hook = new Webhook(process.env.DISCORD);
 
-// test: https://www.bestbuy.com/site/pny-nvidia-geforce-gt-710-verto-2gb-ddr3-pci-express-2-0-graphics-card-black/5092306.p?skuId=5092306
-// 3070: https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442
+const bestbuyURL = 'https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442'
+const priceLimit = 650;
 
-const attemptPurchase = async () => {
-
-  const updateDiscord = async (page, message, file) => {
-    try {
-      await page.screenshot({ path: file }, { fullPage: true });
-      console.log(message)
-      hook.send(message);
-      hook.sendFile("./" + file);
-    } catch (e) {
-      throw e
-    }
+const updateDiscord = async (page, message, file) => {
+  try {
+    await page.screenshot({ path: "./screenshots/" + file }, { fullPage: true });
+    console.log(message)
+    hook.send(message);
+    hook.sendFile("./screenshots/" + file);
+  } catch (e) {
+    console.log(e)
+    process.exit(0)
   }
+}
 
-  const getRandomInt = async (min, max) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min);
-  }
+module.exports = {
 
-  let purchased = false;
-  while (!purchased) {
+  attemptPurchase: async function() {
+
+    // open firefox browser and new tab
+
     const browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
       // headless: false,
@@ -43,22 +40,33 @@ const attemptPurchase = async () => {
         height: 1200,
       },
     });
-
     try {
-      await page.goto('https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442');
-      const retryWaitTime = await getRandomInt(30000, 60000);
+
+      // go to best buy URL and check if item is in stock
+
+      await page.goto(bestbuyURL);
       await page.waitForSelector('.blue-assist-tab', { timeout: 20000 })
       const buttonText = await page.$eval('.add-to-cart-button', el => el.innerText);
       let price = await page.$eval('.priceView-layout-large .priceView-customer-price span', el => el.innerText);
       price = price.slice(1);
 
-      if (buttonText === "Add to Cart" && price < 650) {
-        await page.evaluate(() =>
+      // if in stock, send in stock & price notification via discord
+
+      if (buttonText === "Add to Cart") {
+        await updateDiscord(page, 'ITEM AVAILABLE for ' + price, 'available.png');
+
+        // if price of in stock item is less than user's price limit, add item to cart
+
+        if (price < priceLimit) {
+          await page.evaluate(() =>
           document.querySelectorAll('.add-to-cart-button')[0].scrollIntoView(false))
         await page.evaluate(() =>
           document.querySelectorAll(".add-to-cart-button")[0].click()
         );
         await page.waitForTimeout(1000);
+
+        // handle anti-bot queueing feature if present
+
         let clickAgain = false
         let addedToCart = await page.evaluate(() => document.querySelector('.dot') !== null);
         while (!clickAgain && !addedToCart) {
@@ -75,12 +83,18 @@ const attemptPurchase = async () => {
             console.log("addedToCart", addedToCart)
           }
         }
+
+        // proceed to cart once product has been added to cart & update discord
+
         await updateDiscord(page, 'Added rtx 3070 to cart!', 'added-to-cart.png');
         await page.waitForTimeout(5000);
         await page.waitForSelector('.dot', { timeout: 20000 })
         await page.goto('https://www.bestbuy.com/cart');
         await page.waitForSelector('.checkout-buttons__checkout', { timeout: 20000 });
         await page.evaluate(() =>
+
+        // update shipping zip code
+
           document.querySelectorAll('.change-zipcode-link')[0].click()
         );
         await page.waitForSelector('.update-zip__zip-input', { timeout: 20000 })
@@ -89,17 +103,25 @@ const attemptPurchase = async () => {
           document.querySelectorAll('.update-zip__input-group button')[0].click()
         );
         await page.waitForTimeout(3000)
+
+        // proceed to checkout and update discord
+
         await page.evaluate(() =>
           document.querySelectorAll('.checkout-buttons__checkout button:not(disabled)')[0].click()
         );
         await updateDiscord(page, 'Proceeding with checkout!', 'checkout.png');
         await page.waitForSelector('.cia-guest-content', { timeout: 20000 });
+
+        // continue with guest checkout and update discord
+
         await page.evaluate(() =>
           document.querySelectorAll('.cia-guest-content__continue')[0].click()
         );
         await updateDiscord(page, 'Continuing as guest!', 'guest.png');
         await page.waitForSelector('.streamlined__heading', { timeout: 20000 })
         const headingText = await page.$eval('.streamlined__heading span', el => el.innerText);
+
+        // if shipping option available, fill out shipping info; if only in store pickup available, update discord and exit
 
         if (headingText === "Store Pickup Information") {
           console.log("store pickup")
@@ -122,47 +144,67 @@ const attemptPurchase = async () => {
           await page.type('[id="consolidatedAddresses.ui_address_2.zipcode"]', process.env.ZIP, { delay: 100 })
           await page.type('[id="user.emailAddress"]', process.env.EMAIL, { delay: 100 })
           await page.type('[id="user.phone"]', process.env.PHONE, { delay: 100 })
+
+          // continue to payment options page and update discord
+
           await page.evaluate(() =>
             document.querySelectorAll(".button--continue button")[0].click()
           );
           await updateDiscord(page, 'Shipping and contact info populated. Heading to payment info!', 'shipping.png');
+
+          // fill out payment info
+
           await page.waitForSelector('[id="optimized-cc-card-number"]', { timeout: 20000 })
           await page.type('[id="optimized-cc-card-number"]', process.env.NUMBER, { delay: 100 });
           await page.select('select[name="expiration-month"]', process.env.EXPIREMONTH);
           await page.select('select[name="expiration-year"]', process.env.EXPIREYEAR);
           await page.type('[id="credit-card-cvv"]', process.env.CVV, { delay: 100 });
+
+          // place order and update discord
+
           await updateDiscord(page, 'Placing order!', 'order-preview.png')
           await page.evaluate(() =>
             document.querySelectorAll('.button--place-order button')[0].scrollIntoView(false)
           )
-          // await page.evaluate(() =>
-          //   document.querySelectorAll(".button--place-order button.btn-primary")[0].click()
-          // );
-          // await page.waitForSelector('.thank-you-enhancement__emphasis', { timeout: 60000 })
-          await updateDiscord(page, 'HELL YEAH WE GOT IT!', 'order.png')
+          await page.evaluate(() =>
+            document.querySelectorAll(".button--place-order button.btn-primary")[0].click()
+          );
+          await page.waitForSelector('.thank-you-enhancement__emphasis', { timeout: 60000 })
+
+          // update discord of successful purchase, write file to prevent duplicate purchase, and exit
+
+          await updateDiscord(page, 'PURCHASE SUCCESSFUL!', 'order.png')
           fs.writeFileSync('purchase.json', '{}');
-          purchased = true;
-          browser.close();
+          await browser.close()
+          console.log("browser closed")
           return true
+          }
+
+          // do not purchase if price is above limit
+
+        } else if (price >= priceLimit) {
+          await browser.close()
+          console.log("browser closed")
+          return false
         }
-      } else if (buttonText === "Add to Cart" && price >= 650) {
-        await updateDiscord(page, 'Item in stock for ' + price, 'overPrice.png')
-        console.log("Retrying in " + retryWaitTime)
-        await page.waitForTimeout(retryWaitTime)
-        await browser.close()
+
+        // log that product is not in stock
+
       } else {
         const time = new Date();
         console.log("Not in Stock " + time);
-        console.log("Retrying in " + retryWaitTime)
-        await page.waitForTimeout(retryWaitTime)
-        await browser.close();
+        await browser.close()
+        console.log("browser closed")
+        return false
       }
+
+      // restart application on error
+
     } catch (e) {
-      await updateDiscord(page, '***** ERROR IN PURCHASE. ABORTING *****', 'error.png')
+      console.log("Error, restarting")
       await browser.close()
-      throw e
+      console.log("browser closed")
+      process.exit(0)
     }
   }
-};
-
-module.exports = attemptPurchase()
+}
